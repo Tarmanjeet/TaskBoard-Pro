@@ -13,7 +13,7 @@ const automationSchema=new mongoose.Schema({
     trigger:{
         type:{
             type:String,
-            enum:['Status Change','Due Date','Task Created','Assigned To','Assignee change','Task Completed','Task Unassigned','Task Deleted','Task Updated','Task Commented'],
+            enum:['Status Change','Due Date','Assignee change'],
              required:[true,'Add a trigger']
         },
         condition:{
@@ -24,7 +24,7 @@ const automationSchema=new mongoose.Schema({
     action:{
        type:{
          type:String,
-         enum:['Send Notification','Change Status','Assign Task','Add Comment','Delete Task','Update Task'],
+         enum:['Move task','Send Notification','assign badge'],
          required:[true,'Add an action']
        },
        value:{
