@@ -14,11 +14,15 @@ const projectSchema= new mongoose.Schema({
         enum:['To Do','In Progress','Completed'],
         default:'To Do'
     },
+    members:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'user'
+    }],
     tasks:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'task'
     }],
-    createdBy:{
+    owner:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'user',
         required:true

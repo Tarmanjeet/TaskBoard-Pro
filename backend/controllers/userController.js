@@ -1,13 +1,8 @@
-const {validationResult}=require("express-validator");
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const users=require("../models/userSchema");
 
 let registerUser=async(req,res)=>{
-    let errors=validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({success:false,message:errors.array()[0].msg});
-    }
     let body=req.body;
     let existingUser=await users.findOne({email:body.email});
     if(existingUser && Object.keys(existingUser).length){
@@ -18,7 +13,7 @@ let registerUser=async(req,res)=>{
         name:body.name,
         email:body.email,
         password:await bcrypt.hash(body.password,salt),
-        phone:body.phone
+        image:body.image,
     }
     await users.insertOne(newUser);
     return res.status(200).json({success:true,message:"User registered successfully"});
@@ -26,10 +21,6 @@ let registerUser=async(req,res)=>{
 }
 
 const loginUser=async(req,res)=>{
-    let errors=validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({success:false,message:errors.array()[0].msg});
-    }
     let {email,password}=req.body;
     if(!email || !password){
         return res.status(400).json({success:false,message:"Email and password are required"});
@@ -47,8 +38,8 @@ const loginUser=async(req,res)=>{
     }
     const payLoad={
         userId:user._id,
-        type:user.type||0,
-        name:user.name
+        name:user.name,
+        email:user.email,
     }
     const tokenSecret=process.env.token_secret;
     jwt.sign(payLoad,tokenSecret,{expiresIn:3600},
@@ -59,7 +50,6 @@ const loginUser=async(req,res)=>{
             res.json({success:true,message:"User Logged in successfully",token:token});
         }
     )
-
 }
 
 module.exports={

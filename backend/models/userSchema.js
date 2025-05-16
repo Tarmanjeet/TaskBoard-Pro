@@ -11,13 +11,17 @@ const userSchema=new mongoose.Schema({
         required:true,
         unique:true
     },
+    password:{
+        type:String,
+        required:true
+    },
     image:{
         type:String,
-    },
-    projects:[{
-        type:objectId,
-        ref:"project"
-    }]
+    }
+    // projects:[{
+    //     type:objectId,
+    //     ref:"project"
+    // }]
 })
 
 module.exports=mongoose.model("user",userSchema)
