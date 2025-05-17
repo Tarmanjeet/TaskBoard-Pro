@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import authService from '../services/authService';
 import './Auth.css';
 
 const Register = () => {
@@ -20,7 +20,7 @@ const Register = () => {
       ...prevState,
       [name]: value
     }));
-    setError(''); // Clear error when user types
+    setError(''); 
   };
 
   const validateForm = () => {
@@ -63,15 +63,14 @@ const Register = () => {
 
     try {
       const { confirmPassword, ...registrationData } = formData;
-      console.log('Sending registration data:', registrationData); // Debug log
+      console.log('Sending registration data:', registrationData); 
       const response = await authService.register(registrationData);
-      console.log('Registration response:', response); // Debug log
+      console.log('Registration response:', response); 
       if (response.success) {
-        // Redirect to login page after successful registration
         navigate('/login');
       }
     } catch (err) {
-      console.error('Registration error:', err); // Debug log
+      console.error('Registration error:', err); 
       setError(err.message || 'Failed to register. Please try again.');
     } finally {
       setLoading(false);

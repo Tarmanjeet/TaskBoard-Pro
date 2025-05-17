@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import authService from '../services/authService';
 import './Auth.css';
 
 const Login = () => {
@@ -18,7 +18,7 @@ const Login = () => {
       ...prevState,
       [name]: value
     }));
-    setError(''); // Clear error when user types
+    setError(''); 
   };
 
   const handleSubmit = async (e) => {
@@ -29,7 +29,6 @@ const Login = () => {
     try {
       const response = await authService.login(formData.email, formData.password);
       if (response.success) {
-        // Redirect to dashboard or home page after successful login
         navigate('/dashboard');
       }
     } catch (err) {

@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
     try {
-        // Get token from header
         const token = req.headers.authorization?.split(' ')[1];
         
         if (!token) {
@@ -12,10 +11,8 @@ const verifyToken = (req, res, next) => {
             });
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.token_secret);
         
-        // Add user from payload
         req.user = decoded;
         next();
     } catch (error) {

@@ -2,7 +2,6 @@ const tasks= require('../models/taskSchema');
 const projects= require('../models/projectSchema');
 const automation= require('../models/automationSchema');
 
-
 const createTask=async(req,res)=>{
     try{
         const {title,description,status,priority,assignedTo,dueDate,projectId}=req.body;
@@ -21,18 +20,16 @@ const createTask=async(req,res)=>{
             });
         }
 
-        // Create the task with the provided data
         const task=await tasks.create({
             title,
             description,
             status: status || 'To Do',
             priority: priority || 'Medium',
-            assignedTo: assignedTo || req.user.userId, // Use provided assignedTo or default to current user
+            assignedTo: assignedTo || req.user.userId,
             dueDate: new Date(dueDate),
             projectId
         });
 
-        // Check for automations
         const automationData=await automation.find({
             project:projectId,
             'trigger.type':'assignedTo',
@@ -114,11 +111,9 @@ const updateTaskStatus=async(req,res)=>{
             });
         }
 
-        // Update task status
         task.status=status;
         await task.save();
 
-        // Check for automations
         const automationData=await automation.find({
             project:task.projectId,
             'trigger.type':'Status Change',
@@ -167,7 +162,6 @@ const updateTask=async(req,res)=>{
             });
         }
 
-        // Update task with new data
         const updatedTask=await tasks.findByIdAndUpdate(
             taskId,
             {
@@ -204,21 +198,32 @@ const deleteTask=async(req,res)=>{
         const taskId=req.params.taskId;
         const task=await tasks.findById(taskId);
         if(!task){
-            return res.status(404).json({message:"Task not found"});
+            return res.status(404).json({
+                success: false,
+                message:"Task not found"
+            });
         }
         const project=await projects.findById(task.projectId);
         const isMember=project.owner.toString()===req.user.userId.toString() || project.members.includes(req.user.userId);
         if(!isMember){
-            return res.status(403).json({message:"You are not a member of this project"});
+            return res.status(403).json({
+                success: false,
+                message:"You are not a member of this project"
+            });
         }
         await tasks.findByIdAndDelete(taskId);
-        res.status(200).json.send({message:"Task deleted successfully"});
+        res.status(200).json({
+            success: true,
+            message:"Task deleted successfully"
+        });
     }
     catch(error){
-        res.status(500).json({message:error.message});
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 }
-
 
 module.exports={
     createTask,

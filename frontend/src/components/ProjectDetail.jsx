@@ -80,18 +80,15 @@ const ProjectDetail = () => {
     e.preventDefault();
     try {
       setError('');
-      // Get token from localStorage
       const token = localStorage.getItem('token');
       if (!token) {
         setError('You must be logged in to create a task');
         return;
       }
 
-      // Decode the token to get user ID
       const tokenPayload = JSON.parse(atob(token.split('.')[1]));
       const userId = tokenPayload.userId;
 
-      // Prepare task data
       const taskData = {
         title: newTask.title,
         description: newTask.description,
@@ -102,7 +99,7 @@ const ProjectDetail = () => {
         projectId
       };
 
-      console.log('Creating task with data:', taskData); // Debug log
+      console.log('Creating task with data:', taskData);
 
       const response = await api.post('/task/create', taskData);
       if (response.data.success) {
@@ -143,11 +140,11 @@ const ProjectDetail = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'To Do':
-        return '#FF6B6B'; // Coral red
+        return '#FF6B6B';
       case 'In Progress':
-        return '#4ECDC4'; // Turquoise
+        return '#4ECDC4';
       case 'Done':
-        return '#45B7D1'; // Sky blue
+        return '#45B7D1';
       default:
         return '#6c757d';
     }
@@ -156,11 +153,11 @@ const ProjectDetail = () => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'High':
-        return '#FF6B6B'; // Coral red
+        return '#FF6B6B';
       case 'Medium':
-        return '#FFD93D'; // Warm yellow
+        return '#FFD93D';
       case 'Low':
-        return '#95E1D3'; // Mint green
+        return '#95E1D3';
       default:
         return '#6c757d';
     }

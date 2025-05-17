@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import authService from '../services/authService';
 import api from '../services/api';
 import './Dashboard.css';
 
@@ -16,7 +16,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
@@ -56,14 +55,13 @@ const Dashboard = () => {
       if (response.data.success && response.data.project) {
         setShowNewProjectModal(false);
         setNewProject({ title: '', description: '' });
-        await fetchProjects(); // Refresh the projects list
+        await fetchProjects();
       } else {
         setError(response.data.message || 'Failed to create project');
       }
     } catch (error) {
       console.error('Error creating project:', error);
       if (error.response?.status === 401) {
-        // Token expired or invalid
         authService.logout();
         navigate('/login');
       } else {
