@@ -1,6 +1,6 @@
 const express=require("express");
 const projectRouter=express.Router();
-const {}=require("../controllers/projectController");
+const {createProject,addMemberToProject,getProjects,getProjectById,updateProject,deleteProject}=require("../controllers/projectController");
 
 projectRouter.post("/create",createProject);
 
