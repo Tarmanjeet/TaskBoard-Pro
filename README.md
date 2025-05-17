@@ -189,6 +189,26 @@ Endpoint: DELETE /task/deleteTask/:taskId
 Description: Delete a specific task.
 
 
+# How project looks like
+
+![image](https://github.com/user-attachments/assets/8d155177-457b-4fd9-8139-8d88c88fd269)
+
+![image](https://github.com/user-attachments/assets/3ae3056f-1e2a-4f54-8ba7-92570bc5e8da)
+
+![image](https://github.com/user-attachments/assets/5c0f3f05-bd99-45c2-a278-1c7fb0d8f0c4)
+
+![image](https://github.com/user-attachments/assets/b635c7b2-3654-400f-b414-f86a36fd9e89)
+
+![image](https://github.com/user-attachments/assets/a63e3e64-48ce-469e-a62b-be35a2d76596)
+
+![image](https://github.com/user-attachments/assets/b82ac4e7-6618-4cc5-b0a2-8a11b7bf3943)
+
+![image](https://github.com/user-attachments/assets/4e4b20b6-9ec6-4fcb-97eb-89741fa6d9a4)
+
+
+
+
+
 
 
 
