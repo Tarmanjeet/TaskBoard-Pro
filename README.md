@@ -1,0 +1,200 @@
+# 🗂️ Task Management Board
+
+A collaborative web-based project management platform where users can manage projects and tasks visually using a task board. Ideal for individuals and teams who want a simple and effective way to stay organized and track progress.
+
+---
+
+## 📌 Features
+
+- 🔐 **User Authentication**  
+  - Register and Login functionality
+
+- 📁 **Project Management**  
+  - Create projects with a title and description  
+  - View all your projects in one place
+
+- ✅ **Task Management**
+  - Add tasks to specific projects with:
+    - Title & description
+    - Priority levels: **Low**, **Medium**, **High**
+    - Due dates
+  - Move tasks between default statuses:
+    - **To Do**
+    - **In Progress**
+    - **Completed**
+  - Tasks are added to **To Do** by default
+
+---
+
+## 🛠️ Tech Stack - MERN
+
+---
+
+# API Documentation
+
+# User API
+
+1. Register User
+   
+Endpoint: POST /user/register
+
+Description: Create a new user account.
+
+Request Body:
+
+{
+  "name": "User Name",
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+Response:
+
+{
+  "success": true,
+  "message": "User registered successfully",
+  
+  "user": {
+    "_id": "userId",
+    "name": "User Name",
+    "email": "user@example.com"
+  }
+}
+
+2. Login User
+   
+Endpoint: POST /user/login
+
+Description: Authenticate user and receive a JWT token.
+
+Request Body:
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+Response:
+
+{
+  "success": true,
+  "token": "<JWT token>"
+}
+
+# Project API
+
+1. Create Project
+   
+Endpoint: POST /project/create
+
+Description: Create a new project.
+
+Request Body:
+
+{
+  "title": "Project Title",
+  "description": "Project description",
+  "members": ["userId1", "userId2"]  // optional
+}
+
+Response:
+
+{
+  "success": true,
+  "message": "Project created successfully",
+  
+  "project": {
+  
+    "_id": "projectId",
+    "title": "Project Title",
+    "description": "Project description",
+    "status": "To Do",
+    "owner": "ownerUserId",
+    "members": ["ownerUserId", "userId1", "userId2"],
+    "tasks": []
+    
+  }
+}
+
+2. Add Member to Project
+   
+Endpoint: POST /project/addMemberToProject/:projectId
+
+Description: Add a member to a project (owner only).
+
+Request Body:
+
+{
+  "memberId": "userIdToAdd"
+}
+
+3. Get Projects
+   
+Endpoint: GET /project/getProjects
+
+Description: Get projects where the user is owner or member.
+
+5. Get Project by ID
+
+Endpoint: GET /project/getProject/:projectId
+
+Description: Get project details by ID (owner or member only).
+
+6. Update Project
+
+Endpoint: PATCH /project/updateProject/:projectId
+
+Description: Update project details (owner only).
+
+7. Delete Project
+
+Endpoint: DELETE /project/deleteProject/:projectId
+
+Description: Delete project and related data (owner only).
+
+# Task API
+
+1. Create Task
+
+Endpoint: POST /task/create
+
+Description: Create a task linked to a project.
+
+Request Body:
+
+{
+  "title": "Task Title",
+  "description": "Task details",
+  "projectId": "projectId",
+  "assignee": "userId",
+  "status": "To Do"
+}
+
+2. Get Tasks by Project
+
+Endpoint: GET /task/getTasks/:projectId
+
+Description: Get all tasks for a specific project.
+
+3. Update Task
+
+Endpoint: PATCH /task/updateTask/:taskId
+
+Description: Update task details.
+
+4. Delete Task
+   
+Endpoint: DELETE /task/deleteTask/:taskId
+
+Description: Delete a specific task.
+
+
+
+
+
+
+
+
+
+
+
