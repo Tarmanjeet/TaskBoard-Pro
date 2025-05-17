@@ -9,73 +9,145 @@ const ProjectDetail = () => {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    status: 'todo',
-    priority: 'medium',
+    status: 'To Do',
+    priority: 'Medium',
+    assignedTo: '',
+    dueDate: ''
   });
 
   useEffect(() => {
-    fetchProjectDetails();
-    fetchTasks();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        await Promise.all([
+          fetchProjectDetails(),
+          fetchTasks()
+        ]);
+      } catch (error) {
+        console.error('Error fetching project data:', error);
+        setError('Failed to load project data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [projectId]);
 
   const fetchProjectDetails = async () => {
     try {
-      const response = await api.get(`/getProject/${projectId}`);
-      setProject(response.data.project);
+      const response = await api.get(`/project/getProject/${projectId}`);
+      console.log('Project details response:', response.data);
+      if (response.data.success) {
+        setProject(response.data.project);
+      } else {
+        setError(response.data.message || 'Failed to fetch project details');
+        if (response.data.message === 'Project not found') {
+          navigate('/dashboard');
+        }
+      }
     } catch (error) {
       console.error('Error fetching project details:', error);
+      setError(error.response?.data?.message || 'Failed to fetch project details');
+      if (error.response?.status === 404) {
+        navigate('/dashboard');
+      }
     }
   };
 
   const fetchTasks = async () => {
     try {
-      const response = await api.get(`/getTasksByProject/${projectId}`);
-      setTasks(response.data.tasks || []);
+      const response = await api.get(`/task/getTasksByProject/${projectId}`);
+      console.log('Tasks response:', response.data);
+      if (response.data.success) {
+        setTasks(response.data.tasks || []);
+      } else {
+        setError(response.data.message || 'Failed to fetch tasks');
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      setError(error.response?.data?.message || 'Failed to fetch tasks');
     }
   };
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/create', {
-        ...newTask,
-        projectId,
-      });
-      setShowNewTaskModal(false);
-      setNewTask({
-        title: '',
-        description: '',
-        status: 'todo',
-        priority: 'medium',
-      });
-      fetchTasks();
+      setError('');
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You must be logged in to create a task');
+        return;
+      }
+
+      // Decode the token to get user ID
+      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const userId = tokenPayload.userId;
+
+      // Prepare task data
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        status: newTask.status,
+        priority: newTask.priority,
+        assignedTo: userId,
+        dueDate: new Date(newTask.dueDate).toISOString(),
+        projectId
+      };
+
+      console.log('Creating task with data:', taskData); // Debug log
+
+      const response = await api.post('/task/create', taskData);
+      if (response.data.success) {
+        setShowNewTaskModal(false);
+        setNewTask({
+          title: '',
+          description: '',
+          status: 'To Do',
+          priority: 'Medium',
+          assignedTo: '',
+          dueDate: ''
+        });
+        await fetchTasks();
+      } else {
+        setError(response.data.message || 'Failed to create task');
+      }
     } catch (error) {
       console.error('Error creating task:', error);
+      setError(error.response?.data?.message || 'Failed to create task. Please try again.');
     }
   };
 
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     try {
-      await api.patch(`/updateTaskStatus/${taskId}`, { status: newStatus });
-      fetchTasks();
+      setError('');
+      const response = await api.patch(`/task/updateTaskStatus/${taskId}`, { status: newStatus });
+      if (response.data.success) {
+        await fetchTasks();
+      } else {
+        setError(response.data.message || 'Failed to update task status');
+      }
     } catch (error) {
       console.error('Error updating task status:', error);
+      setError(error.response?.data?.message || 'Failed to update task status. Please try again.');
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'todo':
-        return '#ffd700';
-      case 'in-progress':
-        return '#4a90e2';
-      case 'completed':
-        return '#28a745';
+      case 'To Do':
+        return '#FF6B6B'; // Coral red
+      case 'In Progress':
+        return '#4ECDC4'; // Turquoise
+      case 'Done':
+        return '#45B7D1'; // Sky blue
       default:
         return '#6c757d';
     }
@@ -83,26 +155,40 @@ const ProjectDetail = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high':
-        return '#dc3545';
-      case 'medium':
-        return '#ffc107';
-      case 'low':
-        return '#28a745';
+      case 'High':
+        return '#FF6B6B'; // Coral red
+      case 'Medium':
+        return '#FFD93D'; // Warm yellow
+      case 'Low':
+        return '#95E1D3'; // Mint green
       default:
         return '#6c757d';
     }
   };
 
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading project details...</p>
+      </div>
+    );
+  }
+
   if (!project) {
-    return <div>Loading...</div>;
+    return (
+      <div className="error-container">
+        <p>Project not found</p>
+        <button onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+      </div>
+    );
   }
 
   return (
     <div className="project-detail">
       <header className="project-header">
         <div className="project-info">
-          <h1>{project.name}</h1>
+          <h1>{project.title}</h1>
           <p>{project.description}</p>
         </div>
         <button 
@@ -113,11 +199,13 @@ const ProjectDetail = () => {
         </button>
       </header>
 
+      {error && <div className="error-message">{error}</div>}
+
       <div className="task-board">
-        {['todo', 'in-progress', 'completed'].map((status) => (
+        {['To Do', 'In Progress', 'Done'].map((status) => (
           <div key={status} className="task-column">
             <h2 className="column-title" style={{ backgroundColor: getStatusColor(status) }}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status}
             </h2>
             <div className="task-list">
               {tasks
@@ -139,9 +227,9 @@ const ProjectDetail = () => {
                         value={task.status}
                         onChange={(e) => handleUpdateTaskStatus(task._id, e.target.value)}
                       >
-                        <option value="todo">To Do</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Done">Done</option>
                       </select>
                     </div>
                   </div>
@@ -182,10 +270,20 @@ const ProjectDetail = () => {
                   value={newTask.priority}
                   onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
                 </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="taskDueDate">Due Date</label>
+                <input
+                  type="date"
+                  id="taskDueDate"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                  required
+                />
               </div>
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowNewTaskModal(false)}>

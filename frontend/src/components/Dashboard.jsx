@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
+import api from '../services/api';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -8,9 +9,11 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [newProject, setNewProject] = useState({
-    name: '',
+    title: '',
     description: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
@@ -24,10 +27,11 @@ const Dashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await api.get('/getProjects');
+      const response = await api.get('/project/getProjects');
       setProjects(response.data.projects || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      setError('Failed to fetch projects. Please try again.');
     }
   };
 
@@ -38,13 +42,35 @@ const Dashboard = () => {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      await api.post('/create', newProject);
-      setShowNewProjectModal(false);
-      setNewProject({ name: '', description: '' });
-      fetchProjects();
+      console.log('Creating project with data:', newProject);
+      const response = await api.post('/project/create', {
+        ...newProject,
+        members: []
+      });
+      console.log('Project creation response:', response.data);
+
+      if (response.data.success && response.data.project) {
+        setShowNewProjectModal(false);
+        setNewProject({ title: '', description: '' });
+        await fetchProjects(); // Refresh the projects list
+      } else {
+        setError(response.data.message || 'Failed to create project');
+      }
     } catch (error) {
       console.error('Error creating project:', error);
+      if (error.response?.status === 401) {
+        // Token expired or invalid
+        authService.logout();
+        navigate('/login');
+      } else {
+        setError(error.response?.data?.message || 'Failed to create project. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,6 +92,7 @@ const Dashboard = () => {
       </header>
 
       <main className="dashboard-content">
+        {error && <div className="error-message">{error}</div>}
         <div className="projects-grid">
           {projects.map((project) => (
             <div 
@@ -73,7 +100,7 @@ const Dashboard = () => {
               className="project-card"
               onClick={() => navigate(`/project/${project._id}`)}
             >
-              <h3>{project.name}</h3>
+              <h3>{project.title}</h3>
               <p>{project.description}</p>
               <div className="project-stats">
                 <span>{project.tasks?.length || 0} Tasks</span>
@@ -94,9 +121,10 @@ const Dashboard = () => {
                 <input
                   type="text"
                   id="projectName"
-                  value={newProject.name}
-                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  value={newProject.title}
+                  onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="form-group">
@@ -106,13 +134,23 @@ const Dashboard = () => {
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="modal-actions">
-                <button type="button" onClick={() => setShowNewProjectModal(false)}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewProjectModal(false)}
+                  disabled={loading}
+                >
                   Cancel
                 </button>
-                <button type="submit">Create Project</button>
+                <button 
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Create Project'}
+                </button>
               </div>
             </form>
           </div>

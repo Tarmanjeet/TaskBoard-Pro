@@ -1,6 +1,10 @@
 const express=require("express");
 const taskRouter=express.Router();
 const {createTask,getTasksByProject,updateTaskStatus,updateTask,deleteTask}=require("../controllers/taskController");
+const { verifyToken } = require("../middleware/authMiddleware");
+
+// Apply authentication middleware to all task routes
+taskRouter.use(verifyToken);
 
 taskRouter.post("/create",createTask);
 taskRouter.get("/getTasksByProject/:projectId",getTasksByProject);

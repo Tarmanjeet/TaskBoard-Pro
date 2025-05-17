@@ -1,12 +1,13 @@
 import axios from 'axios';
 
-const API_URL = "https://task-board-backend-deploy.vercel.app/";
+const API_URL = "http://localhost:3030/";
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
 // Add token to requests if it exists
@@ -16,6 +17,8 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // Add response interceptor for better error handling
@@ -23,6 +26,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
@@ -30,7 +38,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (email, password) => {
     try {
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/user/login', { email, password });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
       }
@@ -44,7 +52,7 @@ export const authService = {
   register: async (userData) => {
     try {
       console.log('Attempting to register with data:', userData);
-      const response = await api.post('/register', userData);
+      const response = await api.post('/user/register', userData);
       console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
